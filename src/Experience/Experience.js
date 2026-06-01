@@ -15,10 +15,10 @@ export default class Experience{
         this.setCamera();
         this.setRenderer();
         this.setControls();
-
+        
+        this.time = new Time();
         this.world = new World();
         this.setLoop();
-        this.time = new Time();
     }
 
     setScene(){
@@ -48,6 +48,7 @@ export default class Experience{
     setLoop(){
         const tick = () => {
             this.controls.update();
+            this.world.update();
             this.renderer.render(this.scene, this.camera);
             // this.world.sphere.mesh.rotation.x += 0.01
             // this.world.sphere.mesh.rotation.y += 0.01
