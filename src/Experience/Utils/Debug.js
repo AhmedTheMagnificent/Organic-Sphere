@@ -19,6 +19,7 @@ export default class Debug {
             step: 0.001
         });
 
+        
         folder.addBinding(u.uFresnelMultiplier, 'value', {
             label: 'Fresnel Multiplier',
             min: 0.0,
