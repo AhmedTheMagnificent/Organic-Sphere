@@ -26,7 +26,7 @@ export default class Experience{
     }
 
     setCamera(){
-        this.camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 15);
+        this.camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 105);
         this.camera.position.set(0, 0, 10);
         this.scene.add(this.camera);
     }
@@ -37,7 +37,7 @@ export default class Experience{
           antialias: true
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // ✅ Key for sharpness on high-DPI screens
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3)); // ✅ Key for sharpness on high-DPI screens
 
     }
 
@@ -50,7 +50,7 @@ export default class Experience{
             this.controls.update();
             this.world.update();
             this.renderer.render(this.scene, this.camera);
-            // this.world.sphere.mesh.rotation.x += 0.01
+            this.world.sphere.mesh.rotation.x += 0.1
             // this.world.sphere.mesh.rotation.y += 0.01
             // this.world.sphere.mesh.rotation.z += 0.01
             requestAnimationFrame(tick);
