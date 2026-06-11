@@ -15,7 +15,7 @@ export default class Sphere {
         this.debug = true;
 
         if (this.debug) {
-            this.debugger = new Debug(this.material);
+            this.debugger = new Debug(this.material, this.experience);
         }
     }
 

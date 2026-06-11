@@ -3,10 +3,14 @@ import World from "./World";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Time from "./Utils/Time";
 
-export default class Experience{
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+export default class Experience {
     static instance;
-    constructor(_options = {}){
-        if(Experience.instance){
+    constructor(_options = {}) {
+        if (Experience.instance) {
             return Experience.instance;
         }
         Experience.instance = this;
@@ -14,42 +18,62 @@ export default class Experience{
         this.setScene();
         this.setCamera();
         this.setRenderer();
+        this.setPostProcessing();
         this.setControls();
-        
+
         this.time = new Time();
         this.world = new World();
         this.setLoop();
     }
 
-    setScene(){
+    setScene() {
         this.scene = new THREE.Scene();
     }
 
-    setCamera(){
+    setCamera() {
         this.camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 105);
-        this.camera.position.set(0, 0, 10);
+        this.camera.position.set(0, 0, 6);
         this.scene.add(this.camera);
     }
 
-    setRenderer(){
+    setRenderer() {
         this.renderer = new THREE.WebGLRenderer({
-          canvas: this.canvas,
-          antialias: true
+            canvas: this.canvas,
+            antialias: true
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3)); // ✅ Key for sharpness on high-DPI screens
-
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.0;
     }
 
-    setControls(){
+    setPostProcessing() {
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.setSize(window.innerWidth, window.innerHeight);
+        this.composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const renderPass = new RenderPass(this.scene, this.camera);
+        this.composer.addPass(renderPass);
+
+        this.bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.5,   // strength
+            0.4,   // radius
+            0.85   // threshold
+        );
+        this.composer.addPass(this.bloomPass);
+    }
+
+    setControls() {
         this.controls = new OrbitControls(this.camera, this.canvas);
     }
 
-    setLoop(){
+    setLoop() {
         const tick = () => {
             this.controls.update();
             this.world.update();
-            this.renderer.render(this.scene, this.camera);
+            this.composer.render()
+            // this.renderer.render(this.scene, this.camera);
             this.world.sphere.mesh.rotation.x += 0.1
             // this.world.sphere.mesh.rotation.y += 0.01
             // this.world.sphere.mesh.rotation.z += 0.01
