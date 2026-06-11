@@ -74,7 +74,6 @@ export default class Experience {
             this.world.update();
             this.composer.render()
             // this.renderer.render(this.scene, this.camera);
-            this.world.sphere.mesh.rotation.x += 0.1
             // this.world.sphere.mesh.rotation.y += 0.01
             // this.world.sphere.mesh.rotation.z += 0.01
             requestAnimationFrame(tick);

@@ -20,6 +20,7 @@ uniform float uFresnelMultiplier;
 uniform float uFresnelPower;
 
 uniform float uTime;
+uniform vec3 uOffset;
 uniform float uDisplacementFrequency;
 uniform float uDisplacementStrength;
 uniform float uDistortionFrequency;
@@ -221,22 +222,24 @@ float perlin4d(vec4 P) {
     return 2.2 * n_xyzw;
 }
 
-vec3 getDisplacedPosition(vec3 _position){
+vec3 getDisplacedPosition(vec3 _position) {
     vec3 distoredPosition = _position;
-    distoredPosition += perlin4d(vec4(distoredPosition * uDistortionFrequency, uTime)) * uDistortionStrength;
-    float perlinStrength = perlin4d(vec4(distoredPosition * uDisplacementFrequency, uTime));
+    distoredPosition += perlin4d(vec4(distoredPosition * uDistortionFrequency + uOffset, uTime)) * uDistortionStrength;
+
+    float perlinStrength = perlin4d(vec4(distoredPosition * uDisplacementFrequency + uOffset, uTime));
+    
     vec3 displacedPosition = _position;
-    displacedPosition += normalize(_position) * perlinStrength * uDisplacementStrength;
+    displacedPosition += normalize(distoredPosition) * perlinStrength * uDisplacementStrength;
+
     return displacedPosition;
 }
 
 void main() {
-    // Position
     vec3 displacedPosition = getDisplacedPosition(position);
-    vec4 viewPosition = viewMatrix * vec4(displacedPosition, 1.0);
+    vec4 worldPosition = modelMatrix * vec4(displacedPosition, 1.0);
+    vec4 viewPosition = viewMatrix * worldPosition;
     gl_Position = projectionMatrix * viewPosition;
 
-    // Bi tangents
     float distanceA = (M_PI * 2.0) / uSubdivision.x;
     float distanceB = M_PI / uSubdivision.x;
 
@@ -248,25 +251,25 @@ void main() {
     vec3 positionB = position + biTangent.xyz * distanceB;
     vec3 displacedPositionB = getDisplacedPosition(positionB);
 
-    vec3 computedNormal = cross(displacedPositionA - displacedPosition.xyz, displacedPositionB - displacedPosition.xyz);
+    vec3 computedNormal = cross(
+        displacedPositionA - displacedPosition,
+        displacedPositionB - displacedPosition
+    );
     computedNormal = normalize(computedNormal);
+    vec3 worldNormal = normalize(mat3(modelMatrix) * computedNormal);
 
-    // Fresnel
-    vec3 viewDirection = normalize(displacedPosition.xyz - cameraPosition);
-    float fresnel = uFresnelOffset + (1.0 + dot(viewDirection, computedNormal)) * uFresnelMultiplier;
+    vec3 viewDirection = normalize(worldPosition.xyz - cameraPosition);
+    float fresnel = uFresnelOffset + (1.0 + dot(viewDirection, worldNormal)) * uFresnelMultiplier;
     fresnel = pow(max(0.0, fresnel), uFresnelPower);
 
-    // Color
-    float lightAIntensity = max(0.0, -dot(computedNormal, normalize(-uLightAPosition))) * uLightAIntensity;
-
-    float lightBIntensity = max(0.0, -dot(computedNormal, normalize(-uLightBPosition))) * uLightBIntensity;
+    float lightAIntensity = max(0.0, -dot(worldNormal, normalize(-uLightAPosition))) * uLightAIntensity;
+    float lightBIntensity = max(0.0, -dot(worldNormal, normalize(-uLightBPosition))) * uLightBIntensity;
 
     vec3 color = vec3(0.0);
     color = mix(color, uLightAColor, lightAIntensity * fresnel);
     color = mix(color, uLightBColor, lightBIntensity * fresnel);
     color = mix(color, vec3(1.0), clamp(pow(max(0.0, fresnel - 0.8), 3.0), 0.0, 1.0));
 
-    // Varying
     vColor = color;
-    vNormal = normal;
+    vNormal = worldNormal;
 }

@@ -118,6 +118,7 @@ export default class Sphere {
                 uFresnelOffset: { value: -1.609 },
                 uFresnelMultiplier: { value: 3.587 },
                 uFresnelPower: { value: 1.793 },
+                uOffset: { value: new THREE.Vector3() }
             },
             defines:
             {
@@ -135,7 +136,15 @@ export default class Sphere {
     }
 
     update() {
-        this.material.uniforms.uTime.value += this.time.delta * this.material.uniforms.timeFrequency.value;
+        // if time.delta is in ms, divide by 1000
+        const delta = this.time.delta * 0.001;
+
+        this.material.uniforms.uTime.value += delta * this.material.uniforms.timeFrequency.value;
+
+        // offset drifts slowly over time
+        this.material.uniforms.uOffset.value.x += delta * 0.1;
+        this.material.uniforms.uOffset.value.y += delta * 0.1;
+        this.material.uniforms.uOffset.value.z += delta * 0.1;
     }
 
 }
