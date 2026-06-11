@@ -26,7 +26,7 @@ export default class Experience{
     }
 
     setCamera(){
-        this.camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 15);
         this.camera.position.set(0, 0, 10);
         this.scene.add(this.camera);
     }
